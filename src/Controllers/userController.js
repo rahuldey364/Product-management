@@ -119,7 +119,22 @@ const loginUser = async (req, res) => {
     }
 }
 
-module.exports = { createUser, loginUser }
+// ------------------get Api---------------------------
+
+const getApi = async (req,res) => {
+    try{
+        let useerId = req.params.userId
+        let findUser =  await userModel.findOne({_id : userId})
+        if(!findUser) return res.status(404).send({status : false, message : `${useerId} doesn't exist`})
+        
+        res.status(201).send({status :true, message: "User profile details", data : findUser})
+    }
+    catch(error){
+        res.status(500).send({status : false, message : error.message})
+    }
+}
+
+module.exports = { createUser, loginUser, getApi }
 
 
 
