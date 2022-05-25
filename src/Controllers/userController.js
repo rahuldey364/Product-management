@@ -14,7 +14,13 @@ const keyValid = (key) => {
     return true
 }
 
-
+//-------regex validation----------
+let NameRegex = /^(?![\. ])[a-zA-Z\. ]+(?<! )$/
+let emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
+let passwordRegex =/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,15}$/
+let addressRegex =/^[a-zA-Z ]{3,30}$/
+let pincodeRegex = /^[1-9]\d{5}$/
+let phoneRegex = /^[6-9]\d{9}$/
 
 // -----------------createUser Api-----------------
 const createUser = async function (req, res) {
@@ -26,35 +32,35 @@ const createUser = async function (req, res) {
         let { fname, lname, email, address, password, phone } = data
 
 
-        if (!keyValid(fname) || !/^(?![\. ])[a-zA-Z\. ]+(?<! )$/.test(fname)) return res.status(400).send({ status: false, message: "Please enter fname" })
-        if (!keyValid(lname) || !/^(?![\. ])[a-zA-Z\. ]+(?<! )$/.test(lname)) return res.status(400).send({ status: false, message: "Please enter lname" })
+        if (!keyValid(fname) || !NameRegex.test(fname)) return res.status(400).send({ status: false, message: "Please enter fname" })
+        if (!keyValid(lname) || !NameRegex.test(lname)) return res.status(400).send({ status: false, message: "Please enter lname" })
 
         if (!keyValid(email)) return res.status(400).send({ status: false, message: "Please enter EmailId" })
-        if (!/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email)) return res.status(400).send({ status: false, message: "Invalid email" })
+        if (!emailRegex.test(email)) return res.status(400).send({ status: false, message: "Invalid email" })
         const findEmail = await userModel.findOne({ email: email })
         if (findEmail) return res.status(400).send({ status: false, msg: "Email Already exist!!!" })
 
         if (!keyValid(password)) return res.status(400).send({ status: false, message: "Invalid password" })
-        if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,15}$/.test(password)) return res.status(400).send({ status: false, msg: "Please enter valid Password!!" })
+        if (!passwordRegex.test(password)) return res.status(400).send({ status: false, msg: "Please enter valid Password!!" })
 
         if (!address || Object.keys(address).length == 0) return res.status(400).send({ status: false, message: "Please enter address and it should be in object!!" })
         address = JSON.parse(data.address)
         if (Object.keys(address.shipping).length == 0) return res.status(400).send({ status: false, message: "Please enter shipping address and it should be in object!!" })
         if (!keyValid(address.shipping.street)) return res.status(400).send({ status: false, message: "Invalid Shipping street" })
-        if (!/^[a-zA-Z ]{3,30}$/.test(address.shipping.street)) return res.status(400).send({ status: false, message: "Invalid Shipping Street Name" })
+        if (!addressRegex.test(address.shipping.street)) return res.status(400).send({ status: false, message: "Invalid Shipping Street Name" })
         if (!keyValid(address.shipping.city)) return res.status(400).send({ status: false, message: "Invalid Shipping city" })
-        if (!/^[a-zA-Z ]{3,30}$/.test(address.shipping.city)) return res.status(400).send({ status: false, message: "Invalid Shipping City Name" })
-        if (!/^[1-9]\d{5}$/.test(address.shipping.pincode)) return res.status(400).send({ status: false, message: "Invalid Shipping pincode" })
+        if (!addressRegex.test(address.shipping.city)) return res.status(400).send({ status: false, message: "Invalid Shipping City Name" })
+        if (!pincodeRegex.test(address.shipping.pincode)) return res.status(400).send({ status: false, message: "Invalid Shipping pincode" })
 
         if (!address.billing) return res.status(400).send({ status: false, message: "Please enter Billing address and it should be in object!!" })
         if (!keyValid(address.billing.street)) return res.status(400).send({ status: false, message: "Please Enter Billing street Name" })
-        if (!/^[a-zA-Z ]{3,30}$/.test(address.billing.street)) return res.status(400).send({ status: false, message: "Invalid Billing Street Name" })
+        if (!addressRegex.test(address.billing.street)) return res.status(400).send({ status: false, message: "Invalid Billing Street Name" })
         if (!keyValid(address.billing.city)) return res.status(400).send({ status: false, message: "Please enter Billing City Name" })
-        if (!/^[a-zA-Z ]{3,30}$/.test(address.billing.city)) return res.status(400).send({ status: false, message: "Invalid Billing City Name" })
-        if (!/^[1-9]\d{5}$/.test(address.billing.pincode)) return res.status(400).send({ status: false, message: "Invalid Billing pincode" })
+        if (!addressRegex.test(address.billing.city)) return res.status(400).send({ status: false, message: "Invalid Billing City Name" })
+        if (!pincodeRegex.test(address.billing.pincode)) return res.status(400).send({ status: false, message: "Invalid Billing pincode" })
 
         if (!phone) return res.status(400).send({ status: false, message: "Phone number is required" })
-        if (!/^[6-9]\d{9}$/.test(phone)) return res.status(400).send({ status: false, message: "Invalid Number" })
+        if (!phoneRegex.test(phone)) return res.status(400).send({ status: false, message: "Invalid Number" })
         const existingMobile = await userModel.findOne({ phone: phone })
         if (existingMobile) return res.status(400).send({ status: false, message: "Mobile number is already exists" })
 
@@ -123,9 +129,9 @@ const loginUser = async (req, res) => {
 
 const getApi = async (req,res) => {
     try{
-        let useerId = req.params.userId
+        let userId = req.params.userId
         let findUser =  await userModel.findOne({_id : userId})
-        if(!findUser) return res.status(404).send({status : false, message : `${useerId} doesn't exist`})
+        if(!findUser) return res.status(404).send({status : false, message : `${userId} doesn't exist`})
         
         res.status(201).send({status :true, message: "User profile details", data : findUser})
     }
@@ -134,7 +140,105 @@ const getApi = async (req,res) => {
     }
 }
 
-module.exports = { createUser, loginUser, getApi }
+
+const PutApi = async (req,res) => {
+    try{
+        let userId = req.params.userId
+        let data = req.body
+        let files = req.files
+        if (!data) return res.status(400).send({ status: false, message: "Data is not present in request body" })
+        if (data.fname) {
+            if (!keyValid(data.fname) || !NameRegex.test(data.fname)) {
+                return res.status(400).send({ status: false, message: "first name is not Valid" })
+            }
+        }
+        if (data.lname) {
+            if (!keyValid(data.lname) || !NameRegex.test(data.lname)) {
+                return res.status(400).send({ status: false, msg: "last name is not Valid" })
+            }
+        }
+        if (data.email) {
+            if (!keyValid(data.email) || !emailRegex.test(data.email)) {
+                return res.status(400).send({ status: false, msg: "email is not Valid" })
+            }
+            let uniqueEmail = await userModel.findOne({ email: data.email })
+            if (uniqueEmail) return res.status(409).send({ status: false, msg: " email already exists" })
+        }
+        if (files && files.length != 0) {
+            let uploadedFileURL = await awsConfig.uploadFile(files[0])
+            data.profileImage = uploadedFileURL
+        }
+        if (data.phone) {
+            if (!keyValid(data.phone) || !phoneRegex.test(data.phone)) {
+                return res.status(400).send({ status: false, msg: "Phone no is not Valid" })
+            }
+            let uniquePhone= await userModel.findOne({ phone: data.phone })
+            if (uniquePhone) return res.status(409).send({ status: false, message: "unable to change ,phone no already exists" })
+        }
+        if (data.password) {
+            let saltRounds = await bcrypt.genSalt(10)
+            let encryptedPassword = await bcrypt.hash(data.password, saltRounds)
+            data.password= encryptedPassword
+        }
+        
+        if(data.address && Object.keys(data.address).length != 0){
+            if(!data.address.shipping )
+            // data.address =JSON.parse(data.address)
+            // if (data.address.shipping && Object.keys(data.address.shipping).length != 0){
+            //     if(data.address.shipping.street && Object.keys(data.address.shipping.street).length != 0){
+            //         if (!keyValid(data.address.shipping.street)) return res.status(400).send({ status: false, message: "Invalid Shipping street" })
+            //     }
+            //     if(data.address.shipping.city && Object.keys(data.address.shipping.city).length != 0){
+            //         if (!keyValid(data.address.shipping.city)) return res.status(400).send({ status: false, message: "Invalid Shipping city" })
+            //     }
+            //     if(data.address.shipping.pincode && Object.keys(data.address.shipping.pincode).length != 0){
+            //         if (!keyValid(data.address.shipping.city)) return res.status(400).send({ status: false, message: "Invalid Shipping city" })
+            //     }
+            // }
+            // if (data.address.billing && Object.keys(data.address.billing).length != 0){
+            //     if(data.address.billing.street && Object.keys(data.address.billing.street).length != 0){
+            //         if (!keyValid(data.address.billing.street)) return res.status(400).send({ status: false, message: "Invalid billing street" })
+            //     }
+            //     if(data.address.billing.city && Object.keys(data.address.billing.city).length != 0){
+            //         if (!keyValid(data.address.shipping.city)) return res.status(400).send({ status: false, message: "Invalid billing city" })
+            //     }
+            //     if(data.address.billing.pincode && Object.keys(data.address.billing.pincode).length != 0){
+            //         if (!keyValid(data.address.billing.city)) return res.status(400).send({ status: false, message: "Invalid billing city" })
+            //     }
+            // }
+        }
+
+
+
+
+        let updateUser =  await userModel.findOneAndUpdate({_id : userId},{
+            $set: {
+                fname: data.fname,
+                lname: data.lname,
+                email: data.email,
+                profileImage: data.profileImage,
+                phone:data.phone,
+                password:data.password,
+                address: data.address
+
+        }},{new:true})
+        if(!updateUser) return res.status(404).send({status : false, message : `${userId} doesn't exist`})
+
+        res.status(201).send({status :true, message: "User profile details", data : updateUser})
+    }
+    catch(error){
+        console.log(error)
+        res.status(500).send({status : false, message : error.message})
+    }
+}
+
+
+module.exports = { createUser, loginUser, getApi ,PutApi}
+
+
+//===========
+
+
 
 
 
