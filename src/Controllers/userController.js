@@ -171,7 +171,7 @@ const fetchData = async (req, res) => {
 const updateData = async (req, res) => {
     try {
         let userId = req.params.userId
-        let data = req.body
+        let data = JSON.parse(JSON.stringify(req.body))
         let files = req.files
 
         //-----------------------------VALIDATING USERID-----------------------------------------------------//
@@ -236,10 +236,10 @@ const updateData = async (req, res) => {
                     return res.status(400).send({ status: false, message: "Invalid Billing pincode" })
             }
         }
-
+          let obj = {}
         //----------------------------UPDATING DATA----------------------------------------------------------//   
         let updateUser = await userModel.findOneAndUpdate({ _id: userId }, {
-            $set: {
+           
                 fname: data.fname,
                 lname: data.lname,
                 email: data.email,
@@ -258,11 +258,11 @@ const updateData = async (req, res) => {
                         pincode: data.billing?.shipping?.pincode || oldUserData.address.billing.pincode
                     }
                 }
-            }
+            
         }, { new: true })
         if (!updateUser) return res.status(404).send({ status: false, message: `${userId} doesn't exist` })
 
-        res.status(201).send({ status: true, message: "User profile details", data: updateUser })
+        res.status(200).send({ status: true, message: "User profile details", data: updateUser })
     }
     catch (error) {
         console.log(error)
