@@ -23,7 +23,7 @@ const productModel = new mongoose.Schema({
         required: true,
         //INR
     },
-    curreencyFormat:{
+    currencyFormat:{
         type: String,
         required: true,
         trim: true
@@ -42,7 +42,7 @@ const productModel = new mongoose.Schema({
     },
     availableSizes:{
         type:[String],
-        enum:["S", "XS","M","X", "L","XXL", "XL"]
+     
     },
     installments:{
         type: Number,
