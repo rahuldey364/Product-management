@@ -181,35 +181,6 @@ const updateProduct = async function (req, res) {
     }
 }
 
-const getCart = async function(req,res){
-    try{
-        let userId = req.params.userId
-        if (!userId) {
-            return res.status(400).send({ status: false, message: "enter a user Id  first", });
-        }
-        const isValidUser = await userModel.findOne({ _id: userId, isDeleted: false })    
-        if (!isValidUser) {
-            return res.status(404).send({
-                status: false,
-                message: "not a valid user"
-            });
-        }
-        const getCart = await cartModel.findOne({ userId: userId })
-        if(!getCart){
-            return res.status(404).send({
-                status: false,
-                message: "cart not found"
-        })}
-
-        res.status(200).send({ status: true, data: getCart });
-    
-    }
-    catch(err){
-        console.log(err)
-        res.status(500).send({ status: false, message: err.message })
-    }
-}
-
 
 const getCart = async function(req,res){
     try{
@@ -258,7 +229,7 @@ const deleteCartByUserId = async function (req, res) {
         if (!userCart) {
             return res.status(400).send({ status: false, message: "cart not exist for this UserId" })
         } else {
-            const deleteCart = await cartModel.findOneAndUpdate({ userId: userId }, { items: [], totalItems: 0, totalPrice: 0 })
+            const deleteCart = await cartModel.findOneAndUpdate({ userId: userId }, { items: [], totalItems: 0, totalPrice: 0 }, {new:true})
             return res.status(200).send({ status: true, message: "deleted successfully", data: deleteCart })
         }
     } catch (err) {
@@ -268,4 +239,4 @@ const deleteCartByUserId = async function (req, res) {
     }
 }
 
-module.exports = { addToCart, updateProduct, deleteCartByUserId }
+module.exports = { addToCart, updateProduct, getCart, deleteCartByUserId }
