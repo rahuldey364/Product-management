@@ -180,8 +180,8 @@ const updateData = async (req, res) => {
         if (!oldUserData) return res.status(404).send({ status: false, message: `${userId} doesn't exist` })
       
         //----------------------------AUTHORIZATION ----------------------------------------------------------//
-        // if(req.userId != oldUserData._id)
-        //    return res.status(401).send({status:false , msg:"USER NOT AUTHORISED!!"})
+        if(req.userId != oldUserData._id)
+           return res.status(401).send({status:false , msg:"USER NOT AUTHORISED!!"})
 
         if (!data) return res.status(400).send({ status: false, message: "Data is not present in request body" })
         if (data.fname) {

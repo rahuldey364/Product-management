@@ -18,7 +18,7 @@ const auth = async (req,res, next) => {
 
         req.userId = decodedToken.userId
         next()
-        console.log(decodedToken)
+      //  console.log(decodedToken)
        
     }
      catch (err){
