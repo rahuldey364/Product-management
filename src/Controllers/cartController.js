@@ -55,8 +55,8 @@ const addToCart = async function (req, res) {
         if (!findUser) return res.status(404).send({ status: false, message: `User doesn't exist by ${userId}` })
 
         // Authorization
-        if (findUser._id.toString() != req.userId)
-            return res.status(403).send({ status: false, message: `Unauthorized access! User's info doesn't match` })
+        // if (findUser._id.toString() != req.userId)
+        //     return res.status(403).send({ status: false, message: `Unauthorized access! User's info doesn't match` })
 
         const findProduct = await productModel.findOne({ _id: productId, isDeleted: false })
         if (!findProduct) {
@@ -108,19 +108,21 @@ const addToCart = async function (req, res) {
 
 const updateProduct = async function (req, res) {
     try {
-        let data = req.body
+        const data = req.body
         let userId = req.params.userId
+        console.log(data)
 
         const existUser = await userModel.findOne({ _id: userId })
         if (!existUser) return res.status(404).send({ status: false, message: "Please enter valid UserId" })
+
 
         //Authorization
         // if (existUser._id != req.userId)
         //     return res.status(403).send({ status: false, message: `Unauthorized access! User's info doesn't match` })
 
         if (!keyValid(userId) || !isValidObjectId(userId)) return res.status(400).send({ status: false, message: "Please enter vaild userId" })
-        console.log(req.body.productId)
-        const { productId, cartId, removeProduct } = req.body
+
+        const { productId, cartId, removeProduct } = data
 
         const isCartExist = await cartModel.findOne({ _id: cartId })
         if (!isCartExist) return res.status(404).send({ status: false, message: "Please enter valid CartId" })
@@ -131,9 +133,7 @@ const updateProduct = async function (req, res) {
         const findProduct = await cartModel.findOne({ items: { $elemMatch: { productId: productId } } })
         if (!findProduct) return res.status(400).send({ status: false, message: "product does not exist" })
 
-        let price = isCartExist.totalPrice + (req.body.quantity * isExistProduct.price)
-
-        if (removeProduct < 0 && removeProduct > 1) return res.status(400).send({ status: false, message: "Please enter valid value of removeProduct" })
+        if (removeProduct < 0 || removeProduct > 1) return res.status(400).send({ status: false, message: "Please enter valid value of removeProduct" })
 
         if (removeProduct == 0) {
             let arr = isCartExist.items
@@ -144,8 +144,33 @@ const updateProduct = async function (req, res) {
 
                     let totalPrice = isCartExist.totalPrice - (checkQty * isExistProduct.price)
 
-                    const updatedCart = await cartModel.findOneAndUpdate({ _id: cartId }, { totalPrice: totalPrice, items: arr, totalItems: arr.length })
+                    const updatedCart = await cartModel.findOneAndUpdate({ _id: cartId }, { totalPrice: totalPrice, items: arr, totalItems: arr.length },{new:true})
+                    return res.send({data:updatedCart})
+                }
+            }
+        }
+        if(removeProduct == 1){
+            let arr = isCartExist.items
+            for (let i = 0; i < arr.length; i++) {
+                if(arr[i].quantity ==1){
+                if (arr[i].productId == productId) {
+                    let checkQty = arr[i].quantity
+                    arr.splice(i, 1)
 
+                    let totalPrice = isCartExist.totalPrice - (checkQty * isExistProduct.price)
+
+                    const updatedCart = await cartModel.findOneAndUpdate({ _id: cartId }, { totalPrice: totalPrice, items: arr, totalItems: arr.length },{new:true})
+                    return res.send({data:updatedCart})
+                }}
+                if(arr[i].quantity>1){
+                    if (arr[i].productId == productId) {
+                        arr[i].quantity--;
+
+                    let totalPrice =isCartExist.totalPrice-isExistProduct.price
+
+                    const updatedCart = await cartModel.findOneAndUpdate({ _id: cartId }, { totalPrice: totalPrice, items: arr, totalItems: arr.length },{new:true})
+                    return res.send({data:updatedCart})
+                    }
                 }
             }
         }

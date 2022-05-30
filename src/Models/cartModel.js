@@ -4,7 +4,7 @@ const ObjectId = mongoose.Schema.Types.ObjectId
 const cartModel = new mongoose.Schema({
     userId: {
         type: ObjectId,
-        refs: "user",
+        ref: "user",
         required: true,
         unique: true,
         trim: true
@@ -12,7 +12,7 @@ const cartModel = new mongoose.Schema({
     items: [{
         productId: {
             type: ObjectId,
-            refs: "product",
+            ref: "product",
             required: true,
             trim: true
         },

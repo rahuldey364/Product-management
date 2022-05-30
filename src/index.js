@@ -2,9 +2,12 @@ const express = require('express');
 const mongoose = require('mongoose');
 const route = require('./routes/route');
 const multer= require("multer");
-
-
+const bodyParser = require('body-parser');
 const app = express();
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended : true }));
+
 app.use( multer().any())
 
 mongoose.connect("mongodb+srv://salman-110:Salman110@cluster0.qfvxy.mongodb.net/group43dataBase")
