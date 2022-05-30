@@ -20,14 +20,15 @@ router.get ('/products/:productId',productController.productById)
 router.put ('/products/:productId', productController.updateProduct)
 router.delete('/products/:productId', productController.deleteProduct)
 
-// Cart Api's
+router.post('/users/:userId/cart',cartController.addToCart)
 
-router.post('/users/:userId/cart', cartController.addToCart)
-router.put('/users/:userId/cart', cartController.updateProduct)
-//router.get('/users/:userId/cart', auth, cartController.)
-router.delete('/users/:userId/cart', cartController.deleteCartByUserId)
+router.put('/users/:userId/cart',cartController.updateProduct)
 
-//Order Api's
+
+
+
+
+
 
 
 
