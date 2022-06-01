@@ -6,6 +6,9 @@ const userController = require('../Controllers/userController')
 const auth = async (req,res, next) => {
     try{
         let header = req.header("Authorization")
+
+        if(!header) return res.status(400).send({status:false, msg:"Token Required!!!"})
+        
         let splitToken = header.split(" ")
         let token = splitToken[1]
 

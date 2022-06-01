@@ -252,9 +252,9 @@ const updateData = async (req, res) => {
                         pincode: data.address?.shipping?.pincode || oldUserData.address.shipping.pincode
                     },
                     billing: {
-                        street: data.billing?.shipping?.street || oldUserData.address.billing.street,
-                        city: data.billing?.shipping?.city || oldUserData.address.billing.city,
-                        pincode: data.billing?.shipping?.pincode || oldUserData.address.billing.pincode
+                        street: data.address?.billing?.street || oldUserData.address.billing.street,
+                        city: data.address?.billing?.city || oldUserData.address.billing.city,
+                        pincode: data.address?.billing?.pincode || oldUserData.address.billing.pincode
                     }
                 }
             

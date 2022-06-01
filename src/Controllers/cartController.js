@@ -28,12 +28,12 @@ const validQuantity = function isInteger(value) {
 const addToCart = async function (req, res) {
     try {
         const userId = req.params.userId;
-        const requestBody = req.body;
+        const Data = req.body;
 
         // let userIdFromToken = req.userId;
 
         // validation starts
-        if (!isValidRequestBody(requestBody)) {
+        if (!isValidRequestBody(Data)) {
             return res.status(400).send({ status: false, message: "Please provide valid requestBody" })
         }
 
@@ -41,22 +41,26 @@ const addToCart = async function (req, res) {
             return res.status(400).send({ status: false, message: "please provide valid userId" })
         }
 
-        const { productId, quantity } = requestBody
+        let { productId, quantity } = Data
 
         if (!isValidObjectId(productId) || !keyValid(productId)) {
             return res.status(400).send({ status: false, message: "Please provide valid ProductId" })
         }
+        
+        if(quantity <= 0){ return res.status(400).send({msg:"Invalid Quantity!!"})}
+
         if (!keyValid(quantity) || !validQuantity(quantity)) {
-            return res.status(400).send({ status: false, message: "Please provide valid Quantity and it must be greater than Zero!" })
+           quantity = 1
         }
-        //Validation ends
+
+         //Validation ends
 
         const findUser = await userModel.findById({ _id: userId })
         if (!findUser) return res.status(404).send({ status: false, message: `User doesn't exist by ${userId}` })
 
         // Authorization
-        // if (findUser._id.toString() != req.userId)
-        //     return res.status(403).send({ status: false, message: `Unauthorized access! User's info doesn't match` })
+        if (findUser._id.toString() != req.userId)
+            return res.status(403).send({ status: false, message: `Unauthorized access! User's info doesn't match` })
 
         const findProduct = await productModel.findOne({ _id: productId, isDeleted: false })
         if (!findProduct) {
@@ -83,7 +87,7 @@ const addToCart = async function (req, res) {
         if (findCartOfUser) {
 
             //updating price when products get added or removed
-            let price = findCartOfUser.totalPrice + (req.body.quantity * findProduct.price)
+            let price = findCartOfUser.totalPrice + (quantity * findProduct.price)
             let arr = findCartOfUser.items
 
 
