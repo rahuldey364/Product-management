@@ -106,7 +106,7 @@ const createUser = async function (req, res) {
 
         }
         
-        //-----------------------------CREATING SEXY DATA-------------------------------------------------------------------------------//
+        //-----------------------------CREATING DATA-------------------------------------------------------------------------------//
         const createUser = await userModel.create(data1)
         return res.status(201).send({ status: true, Data: createUser })
 
