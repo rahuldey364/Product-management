@@ -19,11 +19,15 @@ const isValidRequestBody = function (requestBody) {
 
 const createProduct = async function (req, res) {
     try {
-        let data = (req.body)
+        let data = JSON.parse(JSON.stringify(req.body))
         let files = req.files
 
         if (!files || files.length == 0)
             return res.status(400).send({ status: false, message: "Please enter image file!!" })
+
+        if (!isValidRequestBody(data)) {
+            return res.status(400).send({ status: false, message: "Please provide valid requestBody" })
+        }    
 
         let { title, description, price, currencyId, currencyFormat, style, availableSizes, installments } = data
 
@@ -46,7 +50,7 @@ const createProduct = async function (req, res) {
 
         if (!(price))
             return res.status(400).send({ status: false, message: "price is Required" });
-        if (!!/^[0-9.]{100}$/.test(price)) return res.status(400).send({ status: false, message: "price must be in numeric" })
+        if (isNaN(price)) return res.status(400).send({ status: false, message: "price must be in numeric" })
 
 
         if (!(currencyId))
@@ -70,6 +74,10 @@ const createProduct = async function (req, res) {
                 return res.status(400).send({ status: false, message: "availabe sizes must be (S, XS,M,X, L,XXL, XL)" })
         }
         data.availableSizes = sizes
+        if (installments){
+        if (isNaN(installments)) return res.status(400).send({ status: false, message: "installments must be in numeric" })
+        }
+
 
         let uploadedFileURL = await awsConfig.uploadFile(files[0])
         data.productImage = uploadedFileURL
@@ -77,7 +85,7 @@ const createProduct = async function (req, res) {
 
         //-----------------------------CREATING DATA-------------------------------------------------------------------------------//
         const createUser = await productModel.create(data)
-        return res.status(201).send({ status: true, Data: createUser })
+        return res.status(201).send({ status: true,message:"Success", data: createUser })
 
     } catch (err) {
         console.log(err)
@@ -99,26 +107,25 @@ const productByFilter = async function (req, res) {
             let asize = size.split(",")
             console.log(asize)
 
-            if (asize.length > 1) {
-                let arr = []
-                let obj = {}
+            // if (asize.length > 1) {
+            //     let arr = []
 
-                for (let i = 0; i < asize.length; i++) {
-                    if (["S", "XS", "M", "X", "L", "XXL", "XL"].indexOf(asize[i]) == -1) {
-                        return res
-                            .status(400)
-                            .send({ status: false, message: "size should be valid" });
-                    }
-                    if (["S", "XS", "M", "X", "L", "XXL", "XL"].includes(asize[i])) {
-                        // obj.availableSizes=asize[i]
-                        arr.push(asize[i])
-                    }
-                }
-                let newArr = arr.map((x) => { return { availableSizes: x } })
-                console.log(newArr)
-                filter.availableSizes = { $all: newArr }
-                // console.log(newArr)
-            }
+            //     for (let i = 0; i < asize.length; i++) {
+            //         if (["S", "XS", "M", "X", "L", "XXL", "XL"].indexOf(asize[i]) == -1) {
+            //             return res
+            //                 .status(400)
+            //                 .send({ status: false, message: "size should be valid" });
+            //         }
+            //         if (["S", "XS", "M", "X", "L", "XXL", "XL"].includes(asize[i])) {
+            //             // obj.availableSizes=asize[i]
+            //             arr.push(asize[i])
+            //         }
+            //     }
+            //     let newArr = arr.map((x) => { return { availableSizes: x } })
+            //     console.log(newArr)
+            //     filter.availableSizes = { $all: newArr }
+            //     // console.log(newArr)
+            // }
             filter.availableSizes = asize[0]
         }
         if (priceGreaterThan) {
@@ -130,7 +137,7 @@ const productByFilter = async function (req, res) {
             }
 
             filter.price = {}
-            filter.price['$gte'] = Number(priceGreaterThan)
+            filter.price['$gt'] = Number(priceGreaterThan)
         }
         if (priceLessThan) {
             if (!(!isNaN(Number(priceLessThan)))) {
@@ -140,7 +147,7 @@ const productByFilter = async function (req, res) {
                 return res.status(400).send({ status: false, message: 'Price can not be zero or less than zero' })
             }
             filter.price = {}
-            filter.price['$lte'] = Number(priceLessThan)
+            filter.price['$lt'] = Number(priceLessThan)
         }
         if (priceSort) {
             if (!((priceSort == 1) || (priceSort == -1))) {
@@ -150,14 +157,14 @@ const productByFilter = async function (req, res) {
             if (products.length === 0) {
                 return res.status(404).send({ productStatus: false, message: 'No Product found' })
             }
-            return res.status(200).send({ status: true, message: 'Product list', data: products })
+            return res.status(200).send({ status: true, message: 'Success', data: products })
         }
         console.log(filter)
         const products = await productModel.find(filter)
         if (products.length === 0) {
             return res.status(404).send({ Status: false, message: 'No Product found' })
         }
-        return res.status(200).send({ status: true, message: 'Product list', data: products })
+        return res.status(200).send({ status: true, message: 'Success', data: products })
 
 
     } catch (err) {
@@ -182,9 +189,9 @@ const productById = async function (req, res) {
         //DB call
         const allProduct = await productModel.findOne({ _id: productId, isdeleted: false })
         if (!allProduct) {
-            return res.status(400).send({ status: false, message: "Product not found" })
+            return res.status(404).send({ status: false, message: "Product not found" })
         }
-        return res.status(200).send({ status: true, message: "sucess", data: allProduct })
+        return res.status(200).send({ status: true, message: "Success", data: allProduct })
 
     } catch (err) {
         console.log(err)
@@ -197,7 +204,8 @@ const productById = async function (req, res) {
 const updateProduct = async function (req, res) {
     try {
         let productId = req.params.productId
-        let Data = req.body
+        let Data = JSON.parse(JSON.stringify(req.body))
+        console.log(Data)
         let files = req.files
 
         if (!isValidObjectId(productId))
@@ -285,7 +293,7 @@ const updateProduct = async function (req, res) {
 
 
 
-        const updatedProduct = await productModel.findOneAndUpdate({ _id: productId }, { $set: { Data } }, { new: true })
+        const updatedProduct = await productModel.findOneAndUpdate({ _id: productId }, { $set:  Data  }, { new: true })
 
         return res.status(200).send({ status: true, message: "successfully updated product", data: updatedProduct })
     } catch (err) {
