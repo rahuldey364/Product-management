@@ -35,15 +35,18 @@ const createOrder = async function (req, res) {
             return res.status(400).send({ status: false, message: "please provide valid userId" })
         }
         //DB call
-        let existUser = await userModel.findOne({ userId })
+        let existUser = await userModel.findOne({ _id:userId })
+        console.log(existUser)
+        console.log(req.userId)
+        
         if (!existUser) {
             return res.status(404).send({ status: false, message: "User does not exist" })
         }
-
+        
         // //  Authorization
-        // if (existUser._id.toString() != req.userId)
-        //     return res.status(403).send({ status: false, message: `Unauthorized access! User's info doesn't match` })
-
+        if (existUser._id.toString() != req.userId)
+            return res.status(403).send({ status: false, message: `Unauthorized access! User's info doesn't match` })
+ 
 
         let { cartId, status, cancellable } = data
 
@@ -57,11 +60,10 @@ const createOrder = async function (req, res) {
         if (cancellable) {
             if ((typeof (cancellable) !== 'boolean')) return res.status(400).send({ status: false, message: "cancellable must be boolean, either true or false" })
         }
-        console.log(cancellable)
+       
         if (!cancellable && typeof (cancellable) == "undefined") {
             cancellable = true
         }
-        console.log(cancellable)
 
         if (!status) {
             status = 'pending'
@@ -96,7 +98,7 @@ const createOrder = async function (req, res) {
         await cartModel.findOneAndUpdate({ _id: cartId, userId: userId}, { items: [], totalPrice: 0, totalItems: 0 })
      
 
-        return res.status(201).send({ status: true, message: "Order created successfully", data:order})
+        return res.status(201).send({ status: true, message: "Success", data:order})
 
     } catch (err) {
         return res.status(500).send({ status: false, message: err.message })
@@ -120,8 +122,8 @@ const updateOrder = async function (req, res) {
         if (!existUser) return res.status(404).send({ status: false, message: "userId doesn't exist" })
 
         // //  Authorization
-        // if (existUser._id.toString() != req.userId)
-        //     return res.status(403).send({ status: false, message: `Unauthorized access! User's info doesn't match` })
+        if (existUser._id.toString() != req.userId)
+            return res.status(403).send({ status: false, message: `Unauthorized access! User's info doesn't match` })
 
         const { orderId, status } = data
 

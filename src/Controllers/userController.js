@@ -113,7 +113,7 @@ const createUser = async function (req, res) {
         
         //-----------------------------CREATING DATA-------------------------------------------------------------------------------//
         const createUser = await userModel.create(data1)
-        return res.status(201).send({ status: true, Data: createUser })
+        return res.status(201).send({ status: true, data: createUser })
 
     } catch (err) {
         console.log(err)

@@ -27,7 +27,7 @@ const createProduct = async function (req, res) {
 
         if (!isValidRequestBody(data)) {
             return res.status(400).send({ status: false, message: "Please provide valid requestBody" })
-        }    
+        }
 
         let { title, description, price, currencyId, currencyFormat, style, availableSizes, installments } = data
 
@@ -74,8 +74,8 @@ const createProduct = async function (req, res) {
                 return res.status(400).send({ status: false, message: "availabe sizes must be (S, XS,M,X, L,XXL, XL)" })
         }
         data.availableSizes = sizes
-        if (installments){
-        if (isNaN(installments)) return res.status(400).send({ status: false, message: "installments must be in numeric" })
+        if (installments) {
+            if (isNaN(installments)) return res.status(400).send({ status: false, message: "installments must be in numeric" })
         }
 
 
@@ -85,7 +85,7 @@ const createProduct = async function (req, res) {
 
         //-----------------------------CREATING DATA-------------------------------------------------------------------------------//
         const createUser = await productModel.create(data)
-        return res.status(201).send({ status: true,message:"Success", data: createUser })
+        return res.status(201).send({ status: true, message: "Success", data: createUser })
 
     } catch (err) {
         console.log(err)
@@ -283,19 +283,16 @@ const updateProduct = async function (req, res) {
         // file uploading
         if (files[0]) {
 
-
             let uploadedFileURL = await awsConfig.uploadFile(files[0])
             if (!uploadedFileURL)
                 return res.status(400).send({ status: false, message: "No File Found" })
             Data.profileImage = uploadedFileURL
-            
+
         }
-
-
-
-        const updatedProduct = await productModel.findOneAndUpdate({ _id: productId }, { $set:  Data  }, { new: true })
+        const updatedProduct = await productModel.findOneAndUpdate({ _id: productId }, { $set: Data }, { new: true })
 
         return res.status(200).send({ status: true, message: "successfully updated product", data: updatedProduct })
+
     } catch (err) {
         console.log(err)
         return res.status(500).send({ status: false, message: err.message })
@@ -308,7 +305,7 @@ const deleteProduct = async (req, res) => {
         const productId = req.params.productId
 
         //validation for productId
-        if (!validator.isValidObjectId(productId))
+        if (!isValidObjectId(productId))
             return res.status(400).send({ status: false, message: `${productId} is not a valid product id` })
 
         const product = await productModel.findOne({ _id: productId })
@@ -317,14 +314,14 @@ const deleteProduct = async (req, res) => {
             return res.status(400).send({ status: false, message: `Product doesn't exists by ${productId}` })
 
         if (product.isDeleted == true)
-            return res.status(400).send({ status: true, message: `Product has been already deleted.` })
+            return res.status(400).send({ status: true, message: `Product is either deleted or doesn't exist` })
 
-        const deletedoc = await productModel.findOneAndUpdate({ _id: productId }, { $set: { isDeleted: true, deletedAt: new Date() } })
+        const deletedoc = await productModel.findOneAndUpdate({ _id: productId }, { isDeleted: true, deletedAt: new Date() }, {new:true})
 
         return res.status(200).send({ status: true, message: `Product deleted successfully.`, data: deletedoc })
     }
     catch (error) {
-        res.status(500).sned({ status: false, messsage: error.message })
+        res.status(500).send({ status: false, messsage: error.message })
     }
 }
 
